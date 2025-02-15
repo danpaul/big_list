@@ -1,10 +1,9 @@
-import { promises as fs } from "fs";
-import path from "path";
 import { DataNode, DataNodeValue } from "./DataNode";
+import { DataStore } from "./FileDataStore";
 
 interface DataNodeManagerOptions {
   baseUrl: string;
-  baseDir: string;
+  store: DataStore;
 }
 
 interface DeleteOptions {
@@ -13,23 +12,15 @@ interface DeleteOptions {
 
 export class DataNodeManager {
   private baseUrl: string;
-  private baseDir: string;
+  private store: DataStore;
 
   constructor(options: DataNodeManagerOptions) {
     this.baseUrl = options.baseUrl;
-    this.baseDir = options.baseDir;
+    this.store = options.store;
   }
 
   get url(): string {
     return this.baseUrl;
-  }
-
-  get directory(): string {
-    return this.baseDir;
-  }
-
-  private getFilePath(uuid: string): string {
-    return path.join(this.baseDir, `${uuid}.json`);
   }
 
   private getUrlFromUuid(uuid: string): string {
@@ -42,18 +33,16 @@ export class DataNodeManager {
 
   async create(value: DataNodeValue): Promise<DataNode> {
     const node = new DataNode({ value });
-    await this.save(node);
+    await this.store.save(node);
     return node;
   }
 
   async read(uuid: string): Promise<DataNode> {
-    const filePath = this.getFilePath(uuid);
-    const content = await fs.readFile(filePath, "utf-8");
-    return DataNode.fromJson(content);
+    return this.store.read(uuid);
   }
 
   async update(node: DataNode): Promise<void> {
-    await this.save(node);
+    await this.store.save(node);
   }
 
   async delete(uuid: string, options?: DeleteOptions): Promise<void> {
@@ -64,14 +53,7 @@ export class DataNodeManager {
       await this.update(parentNode);
     }
 
-    const filePath = this.getFilePath(uuid);
-    await fs.unlink(filePath);
-  }
-
-  private async save(node: DataNode): Promise<void> {
-    const filePath = this.getFilePath(node.value.meta.uuid);
-    await fs.mkdir(this.baseDir, { recursive: true });
-    await fs.writeFile(filePath, node.toJson());
+    await this.store.delete(uuid);
   }
 
   async moveUp(uuid: string, parentUuid: string): Promise<void> {
@@ -146,7 +128,7 @@ export class DataNodeManager {
   ): Promise<DataNode> {
     // Create the new node
     const node = new DataNode({ value });
-    await this.save(node);
+    await this.store.save(node);
 
     // Get the parent node and update its references
     const parentNode = await this.read(parentUuid);
@@ -157,7 +139,7 @@ export class DataNodeManager {
       node.next = parentNode.next;
       parentNode.next = this.getUrlFromUuid(node.value.meta.uuid);
     }
-    await this.save(parentNode);
+    await this.store.save(parentNode);
 
     return node;
   }
