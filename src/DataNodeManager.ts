@@ -138,6 +138,29 @@ export class DataNodeManager {
 
     await Promise.all([this.update(node), this.update(parentNode)]);
   }
+
+  async add(
+    value: DataNodeValue,
+    parentUuid: string,
+    asChild: boolean = false
+  ): Promise<DataNode> {
+    // Create the new node
+    const node = new DataNode({ value });
+    await this.save(node);
+
+    // Get the parent node and update its references
+    const parentNode = await this.read(parentUuid);
+    if (asChild) {
+      parentNode.child = this.getUrlFromUuid(node.value.meta.uuid);
+    } else {
+      // If adding as next, preserve the existing chain
+      node.next = parentNode.next;
+      parentNode.next = this.getUrlFromUuid(node.value.meta.uuid);
+    }
+    await this.save(parentNode);
+
+    return node;
+  }
 }
 
 export default DataNodeManager;

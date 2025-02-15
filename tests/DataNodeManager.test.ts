@@ -436,4 +436,136 @@ describe("DataNodeManager", () => {
     expect(updatedNodeA.child).toBeNull();
     expect(updatedNodeB.next).toBe(`${manager.url}/c-uuid.json`);
   });
+
+  it("should add a node as next to parent node", async () => {
+    // Create parent node
+    const parentNode = await manager.create({
+      meta: {
+        createdAt: new Date(),
+        title: "Parent Node",
+        uuid: "parent-uuid",
+        baseUrl: manager.url,
+      },
+      body: {
+        type: "text",
+        data: { text: "Parent Node" },
+      },
+    });
+
+    // Add new node as next
+    const newNode = await manager.add(
+      {
+        meta: {
+          createdAt: new Date(),
+          title: "New Node",
+          uuid: "new-uuid",
+          baseUrl: manager.url,
+        },
+        body: {
+          type: "text",
+          data: { text: "New Node" },
+        },
+      },
+      "parent-uuid",
+      false
+    );
+
+    // Verify the linkage
+    const updatedParent = await manager.read("parent-uuid");
+    expect(updatedParent.next).toBe(`${manager.url}/new-uuid.json`);
+  });
+
+  it("should add a node as child to parent node", async () => {
+    // Create parent node
+    const parentNode = await manager.create({
+      meta: {
+        createdAt: new Date(),
+        title: "Parent Node",
+        uuid: "parent-uuid",
+        baseUrl: manager.url,
+      },
+      body: {
+        type: "text",
+        data: { text: "Parent Node" },
+      },
+    });
+
+    // Add new node as child
+    const newNode = await manager.add(
+      {
+        meta: {
+          createdAt: new Date(),
+          title: "New Node",
+          uuid: "new-uuid",
+          baseUrl: manager.url,
+        },
+        body: {
+          type: "text",
+          data: { text: "New Node" },
+        },
+      },
+      "parent-uuid",
+      true
+    );
+
+    // Verify the linkage
+    const updatedParent = await manager.read("parent-uuid");
+    expect(updatedParent.child).toBe(`${manager.url}/new-uuid.json`);
+  });
+
+  it("should preserve existing next reference when adding as next", async () => {
+    // Create a chain: Parent -> Existing -> null
+    const existingNode = await manager.create({
+      meta: {
+        createdAt: new Date(),
+        title: "Existing Node",
+        uuid: "existing-uuid",
+        baseUrl: manager.url,
+      },
+      body: {
+        type: "text",
+        data: { text: "Existing Node" },
+      },
+    });
+
+    const parentNode = await manager.create({
+      meta: {
+        createdAt: new Date(),
+        title: "Parent Node",
+        uuid: "parent-uuid",
+        baseUrl: manager.url,
+      },
+      body: {
+        type: "text",
+        data: { text: "Parent Node" },
+      },
+    });
+    parentNode.next = `${manager.url}/existing-uuid.json`;
+    await manager.update(parentNode);
+
+    // Add new node as next to parent
+    const newNode = await manager.add(
+      {
+        meta: {
+          createdAt: new Date(),
+          title: "New Node",
+          uuid: "new-uuid",
+          baseUrl: manager.url,
+        },
+        body: {
+          type: "text",
+          data: { text: "New Node" },
+        },
+      },
+      "parent-uuid",
+      false
+    );
+
+    // Verify the chain: Parent -> New -> Existing -> null
+    const updatedParent = await manager.read("parent-uuid");
+    const updatedNew = await manager.read("new-uuid");
+
+    expect(updatedParent.next).toBe(`${manager.url}/new-uuid.json`);
+    expect(updatedNew.next).toBe(`${manager.url}/existing-uuid.json`);
+  });
 });
