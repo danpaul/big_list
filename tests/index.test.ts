@@ -1,5 +1,4 @@
-import { Node, DataNode } from "../src";
-// import BigListNode from "../src/BigListNode";
+import { DataNode } from "../src";
 
 describe("Node hierarchy", () => {
   describe("DataNode", () => {
@@ -163,6 +162,9 @@ describe("Node hierarchy", () => {
         "https://example.com/base"
       );
       expect(deserializedNode.value.body.type).toBe("text");
+
+      console.log(deserializedNode.value.body.data);
+
       expect(deserializedNode.value.body.data.text).toBe("Hello world");
 
       // Check next and child references

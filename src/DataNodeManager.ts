@@ -38,7 +38,11 @@ export class DataNodeManager {
   }
 
   async read(uuid: string): Promise<DataNode> {
-    return this.store.read(uuid);
+    const node = await this.store.read(uuid);
+    if (!node) {
+      throw new Error(`Node not found with uuid: ${uuid}`);
+    }
+    return node;
   }
 
   async update(node: DataNode): Promise<void> {
