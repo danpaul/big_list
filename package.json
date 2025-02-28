@@ -1,5 +1,5 @@
 {
-  "name": "@your-scope/data-node-manager",
+  "name": "@danpaul/data-node-manager",
   "version": "0.1.0",
   "description": "A data node management system for linked content",
   "main": "dist/index.js",

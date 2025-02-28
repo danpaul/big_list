@@ -5,7 +5,7 @@ A TypeScript library for managing linked data nodes with file system persistence
 ## Installation
 
 ```bash
-npm install data-node-manager
+npm install @danpaul/data-node-manager
 ```
 
 ## Features
