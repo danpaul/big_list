@@ -1,3 +1,4 @@
-export { default as Node } from "./Node";
-export { default as DataNode } from "./DataNode";
-export { default as DataNodeManager } from "./DataNodeManager";
+export { DataNode, type DataNodeOptions, type DataNodeValue } from "./DataNode";
+export { DataNodeManager } from "./DataNodeManager";
+export { DataNodeValueLocal, DataNodeValueReference } from "./DataNodeValue";
+export { type DataStore } from "./FileDataStore";
