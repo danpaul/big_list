@@ -21,12 +21,11 @@ npm install data-node-manager
 ### Basic Node Operations
 
 ```typescript
-typescript;
 import {
   DataNodeManager,
   DataNodeValueLocal,
   FileDataStore,
-} from "@your-scope/data-node-manager";
+} from "data-node-manager";
 // Initialize the manager
 const store = new FileDataStore("./data");
 const manager = new DataNodeManager({
