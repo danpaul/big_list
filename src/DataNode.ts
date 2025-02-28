@@ -1,36 +1,7 @@
-interface Meta {
-  createdAt: Date;
-  title: string;
-  uuid: string;
-  baseUrl: string;
-}
+import { DataNodeValueReference, DataNodeValueLocal } from "./DataNodeValue";
+import path from "path";
 
-interface DataNodeValue {
-  meta: Meta;
-  body:
-    | DataNodeBodyValueText
-    | DataNodeBodyValueLink
-    | DataNodeBodyValueReference;
-}
-
-interface DataNodeBodyValueBase {
-  type: "text" | "link" | "reference";
-}
-
-interface DataNodeBodyValueText extends DataNodeBodyValueBase {
-  type: "text";
-  data: { text: string };
-}
-
-interface DataNodeBodyValueLink extends DataNodeBodyValueBase {
-  type: "link";
-  data: { href: string };
-}
-
-interface DataNodeBodyValueReference extends DataNodeBodyValueBase {
-  type: "reference";
-  data: { href: string };
-}
+type DataNodeValue = DataNodeValueReference | DataNodeValueLocal<string>;
 
 import Node, { NodeOptions } from "./Node";
 
@@ -42,21 +13,15 @@ export class DataNode extends Node<DataNodeValue> {
   }
 
   get fileLocation(): string {
-    return `${this.value.meta.uuid}.json`;
+    return `${this.uuid}.json`;
   }
 
   get url(): string {
-    return `${this.value.meta.baseUrl}/${this.fileLocation}`;
+    return path.posix.join(this.baseUrl, this.fileLocation);
   }
 
   toJson(): string {
-    const output = {
-      value: this.value,
-      next: this.next,
-      child: this.child,
-    };
-
-    return JSON.stringify(output, null, 2);
+    return JSON.stringify(this);
   }
 
   static fromJson(json: string): DataNode {
@@ -68,11 +33,4 @@ export class DataNode extends Node<DataNodeValue> {
 }
 
 export default DataNode;
-export type {
-  Meta,
-  DataNodeValue,
-  DataNodeBodyValueBase,
-  DataNodeBodyValueText,
-  DataNodeBodyValueLink,
-  DataNodeBodyValueReference,
-};
+export type { DataNodeValue };

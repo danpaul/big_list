@@ -1,4 +1,4 @@
-import { DataNode, DataNodeValue } from "./DataNode";
+import { DataNode, DataNodeValue, DataNodeOptions } from "./DataNode";
 import { DataStore } from "./FileDataStore";
 
 interface DataNodeManagerOptions {
@@ -23,16 +23,16 @@ export class DataNodeManager {
     return this.baseUrl;
   }
 
-  private getUrlFromUuid(uuid: string): string {
+  getUrlFromUuid(uuid: string): string {
     return `${this.baseUrl}/${uuid}.json`;
   }
 
-  private getUuidFromUrl(url: string): string {
+  getUuidFromUrl(url: string): string {
     return url.split("/").pop()?.replace(".json", "") || "";
   }
 
-  async create(value: DataNodeValue): Promise<DataNode> {
-    const node = new DataNode({ value });
+  async create(options: DataNodeOptions): Promise<DataNode> {
+    const node = new DataNode(options);
     await this.store.save(node);
     return node;
   }
@@ -126,22 +126,22 @@ export class DataNodeManager {
   }
 
   async add(
-    value: DataNodeValue,
+    options: DataNodeOptions,
     parentUuid: string,
     asChild: boolean = false
   ): Promise<DataNode> {
     // Create the new node
-    const node = new DataNode({ value });
+    const node = new DataNode(options);
     await this.store.save(node);
 
     // Get the parent node and update its references
     const parentNode = await this.read(parentUuid);
     if (asChild) {
-      parentNode.child = this.getUrlFromUuid(node.value.meta.uuid);
+      parentNode.child = this.getUrlFromUuid(node.uuid);
     } else {
       // If adding as next, preserve the existing chain
       node.next = parentNode.next;
-      parentNode.next = this.getUrlFromUuid(node.value.meta.uuid);
+      parentNode.next = this.getUrlFromUuid(node.uuid);
     }
     await this.store.save(parentNode);
 

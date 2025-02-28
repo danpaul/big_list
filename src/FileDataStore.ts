@@ -20,7 +20,7 @@ export class FileDataStore implements DataStore {
   }
 
   async save(node: DataNode): Promise<void> {
-    const filePath = this.getFilePath(node.value.meta.uuid);
+    const filePath = this.getFilePath(node.uuid);
     await fs.mkdir(this.baseDir, { recursive: true });
     await fs.writeFile(filePath, node.toJson());
   }
